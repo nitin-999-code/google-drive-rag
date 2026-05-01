@@ -119,7 +119,7 @@ def process_documents(files):
 
 def answer_query(query):
     query_embedding = model.encode([query])[0]
-    chunks, sources = search_similar(query_embedding, k=3)
+    chunks, sources = search_similar(query, query_embedding, top_k=5)
     
     if not chunks:
         return {

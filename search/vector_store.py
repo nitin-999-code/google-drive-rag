@@ -33,7 +33,7 @@ def store_embeddings(embeddings, chunks, source_name="unknown"):
         chunk_mapping[start_idx + i] = chunk
         chunk_sources[start_idx + i] = source_name
 
-def search_similar(query_embedding, k=3):
+def search_similar(query, query_embedding, top_k=5):
     """
     Search vector database for top matching chunks.
     """
@@ -42,13 +42,27 @@ def search_similar(query_embedding, k=3):
     if index is None or index.ntotal == 0:
         return [], []
         
-    distances, indices = index.search(np.array([query_embedding]).astype('float32'), k)
+    D, I = index.search(np.array([query_embedding]).astype('float32'), top_k)
     
     results = []
-    sources = []
-    for idx in indices[0]:
+    for i, idx in enumerate(I[0]):
         if idx != -1 and idx in chunk_mapping:
-            results.append(chunk_mapping[idx])
-            sources.append(chunk_sources[idx])
+            chunk_text = chunk_mapping[idx]
+            source = chunk_sources[idx]
+            score = float(D[0][i])
             
-    return results, sources
+            if query.lower() in chunk_text.lower():
+                score = score * 0.8
+                
+            results.append({
+                "chunk": chunk_text,
+                "source": source,
+                "score": score
+            })
+            
+    results.sort(key=lambda x: x["score"])
+    
+    final_chunks = [r["chunk"] for r in results]
+    final_sources = [r["source"] for r in results]
+            
+    return final_chunks, final_sources
