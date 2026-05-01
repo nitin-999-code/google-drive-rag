@@ -58,7 +58,23 @@ def download_file(file):
         
     return file_path
 
-def process_documents(files):
+def process_documents(files, force_reindex=False):
+    if force_reindex:
+        logger.info("Force reindex enabled — clearing existing index")
+        
+        if os.path.exists("data/index.faiss"):
+            os.remove("data/index.faiss")
+            
+        if os.path.exists("data/documents.pkl"):
+            os.remove("data/documents.pkl")
+            
+        PROCESSED_FILES.clear()
+        
+        import search.vector_store as vector_store
+        vector_store.index = None
+        vector_store.chunk_mapping.clear()
+        vector_store.chunk_sources.clear()
+
     processed_count = 0
     for file in files:
         file_name = file["name"]
@@ -74,7 +90,7 @@ def process_documents(files):
             logger.info(msg)
             continue
             
-        if file_name in PROCESSED_FILES:
+        if not force_reindex and file_name in PROCESSED_FILES:
             msg = f"Already indexed: {file_name}"
             print(msg)
             logger.info(msg)

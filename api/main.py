@@ -17,7 +17,7 @@ def health_check():
     return {"message": "Google Drive RAG API running"}
 
 @app.post("/sync-drive")
-def sync_drive():
+def sync_drive(force_reindex: bool = False):
     logger.info("Sync drive endpoint called.")
     result = list_files()
     
@@ -26,7 +26,7 @@ def sync_drive():
         return result
         
     files = result.get('files', [])
-    count = process_documents(files)
+    count = process_documents(files, force_reindex=force_reindex)
     
     return {
         "status": "success",
