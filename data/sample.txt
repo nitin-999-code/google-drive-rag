@@ -1,0 +1,2 @@
+This is a test document for Google Drive RAG system.
+Testing Google Drive integration.
